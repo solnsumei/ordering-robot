@@ -13,22 +13,21 @@ Library    RPA.Archive
 
 
 *** Variables ***
-${robot_website}=    https://robotsparebinindustries.com/
-${robot_order_page}=    ${robot_website}/#/robot-order
-${order_csv}=    ${robot_website}/orders.csv
+${ORDER_CSV}=    https://robotsparebinindustries.com/orders.csv
 ${SCREENSHOT_DIR}=    ${OUTPUT_DIR}${/}screenshots
 ${RECEIPT_DIR}=    ${OUTPUT_DIR}${/}receipts
 
 
 *** Tasks ***
 Order robots from RobotSpareBin Industries Inc
-    Open the robot order website
+    ${secrets}=    Get Secret    credentials
+    Open the robot order website    ${secrets}[robot website]
     ${orders}=    Get orders
     FOR    ${row}    IN    @{orders}
         Close the annoying modal
         Fill the form    ${row}
         Preview the robot
-        Wait Until Keyword Succeeds    3x    5 sec    Submit the order
+        Wait Until Keyword Succeeds    5x    5 sec    Submit the order
         ${pdf}=    Store the receipt as a PDF file    ${row}[Order number]
         ${screenshot}=    Take a screenshot of the robot    ${row}[Order number]
         Embed the robot screenshot to the receipt PDF file    ${screenshot}    ${pdf}
@@ -39,10 +38,11 @@ Order robots from RobotSpareBin Industries Inc
 
 *** Keywords ***
 Open the robot order website
-    Open Available Browser    ${robot_order_page}
+    [Arguments]    ${robot_website}
+    Open Available Browser    ${robot_website}/#/robot-order
 
 Get orders
-    Download    ${order_csv}    overwrite=True
+    Download    ${ORDER_CSV}    overwrite=True
     ${table}=    Read table from CSV    orders.csv    header=True
     RETURN    ${table}
 
@@ -55,13 +55,14 @@ Fill the form
     Select Radio Button    body    ${row}[Body]
     Input Text    css:.form-control     ${row}[Legs]
     Input Text    address    ${row}[Address]
+    Wait Until Element Is Visible    id:preview
 
 
 Preview the robot
     Click Button    Preview
 
 Submit the order
-    Click Button    Order
+    Click Button   Order
     Wait Until Element Is Visible    id:receipt
 
 Store the receipt as a PDF file
