@@ -10,6 +10,9 @@ Library    RPA.PDF
 Library    RPA.Robocorp.Vault
 Library    RPA.Tables
 Library    RPA.Archive
+Library    RPA.Dialogs
+
+Suite Teardown    Close All Browsers
 
 
 *** Variables ***
@@ -42,6 +45,10 @@ Open the robot order website
     Open Available Browser    ${robot_website}/#/robot-order
 
 Get orders
+    Add heading    Warning
+    Add icon    Warning    size=64
+    Add text    You are about to download order csv from RobotSpareBin. Press close to continue.    size=Medium
+    Run dialog
     Download    ${ORDER_CSV}    overwrite=True
     ${table}=    Read table from CSV    orders.csv    header=True
     RETURN    ${table}
